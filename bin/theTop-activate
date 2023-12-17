@@ -1,5 +1,0 @@
-#!/bin/bash
-
-export THETOP_BIN="`cd \`dirname $BASH_ARGV\`; pwd`"
-. "$THETOP_BIN/theTop-setenv"
-. "$THETOP_BIN/activate"
