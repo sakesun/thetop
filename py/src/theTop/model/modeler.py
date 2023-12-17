@@ -1,4 +1,4 @@
-import models
+from . import models
 
 class ValueModeler(models.Item):
     __call__ = models.Value
@@ -38,8 +38,8 @@ class BooleanOperations(object):
 class StaticOperations(object):
     def isnull(self, x): return models.make(x).is_null
     def same(self, x1, x2):
-        x1 = make(x1)
-        x2 = make(x2)
+        x1 = models.make(x1)
+        x2 = models.make(x2)
         bothnull = models.And(x1.is_null, x2.is_null)
         bothequal = (x1 == x2)
         return models.Or(bothnull, bothequal)

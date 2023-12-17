@@ -1,6 +1,7 @@
 #! -*- coding: utf-8 -*-
 
 from __future__ import division
+from functools import reduce
 import re
 import operator
 import string
@@ -13,9 +14,9 @@ def inarg(x):
            else x
 
 try:
-    import clr
-    from System import DBNull
-    null_detectors.append(lambda v: v == DBNull.Value)
+    clr = __import__('clr')
+    System = __import__('System')
+    null_detectors.append(lambda v: v == System.DBNull.Value)
 except ImportError:
     pass
 
@@ -246,7 +247,7 @@ def replace(s, old, new):
     old = inarg(old)
     new = inarg(new)
     if isnull(s) or isnull(old) or isnull(new): return None
-    return string.replace(s, old, new)
+    return s.replace(old, new)
 
 def ltrim(s):
     s = inarg(s)
@@ -309,7 +310,7 @@ def aggregate_summaries(size, S):
     S = inarg(S)
     r = size * [None]
     for v in S:
-        for i in xrange(size):
+        for i in range(size):
             if notnull(v[i]):
                 if isnull(r[i]): r[i] = v[i]
                 else: r[i] += v[i]
@@ -320,7 +321,7 @@ def aggregate_minimums(size, S):
     S = inarg(S)
     r = size * [None]
     for v in S:
-        for i in xrange(size):
+        for i in range(size):
             if notnull(v[i]):
                 if isnull(r[i]): r[i] = v[i]
                 elif v[i] < r[i]: r[i] = v[i]
@@ -331,7 +332,7 @@ def aggregate_maximums(size, S):
     S = inarg(S)
     r = size * [None]
     for v in S:
-        for i in xrange(size):
+        for i in range(size):
             if notnull(v[i]):
                 if isnull(r[i]): r[i] = v[i]
                 elif v[i] > r[i]: r[i] = v[i]
@@ -342,6 +343,6 @@ def aggregate_counts(size, S):
     S = inarg(S)
     r = size * [0]
     for v in S:
-        for i in xrange(size):
+        for i in range(size):
             if notnull(v[i]): r[i] += 1
     return tuple(r)

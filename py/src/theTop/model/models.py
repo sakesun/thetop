@@ -58,10 +58,10 @@ def setlist(*args, **kwargs):
         labels = set()
         for x in args:
             k = v = None
-            if isinstance(x, basestring):
+            if isinstance(x, str):
                 k = x
                 v = Parameter(x)
-            elif isinstance(x, (tuple, list)) and (len(x) == 2) and isinstance(x[0], basestring):
+            elif isinstance(x, (tuple, list)) and (len(x) == 2) and isinstance(x[0], str):
                 k = x[0]
                 v = make(x[1])
             else:
@@ -72,7 +72,7 @@ def setlist(*args, **kwargs):
         return r
     else:
         assert kwargs
-        return [(k, make(v)) for (k, v) in kwargs.iteritems()]
+        return [(k, make(v)) for (k, v) in kwargs.items()]
 
 def deflist(*args, **kwargs):
     if args and kwargs: raise ValueError('Cannot mix arguments list with keyword arguments')
@@ -87,7 +87,7 @@ def deflist(*args, **kwargs):
         return r
     else:
         assert kwargs
-        return [(k, make(kwargs[k])) for k in sorted(kwargs.iterkeys())]
+        return [(k, make(kwargs[k])) for k in sorted(kwargs.keys())]
 
 def altogether(*predicates):
     if not predicates: return TRUE
@@ -97,7 +97,7 @@ def altogether(*predicates):
 def matchings(*args, **kwargs):
     predicates = []
     for (k, v) in args: predicates.append(Item(k) == make(v))
-    for (k, v) in kwargs.iteritems(): predicates.append(Item(k) == make(v))
+    for (k, v) in kwargs.items(): predicates.append(Item(k) == make(v))
     return predicates
 
 def where(*args, **kwargs):
@@ -213,25 +213,25 @@ class Composer(object):
     def Merging(self, source, inserting): raise NotImplementedError()
 
 def _emitting_models():
-    return ((k,v) for (k,v) in globals().iteritems()
+    return ((k,v) for (k,v) in globals().items()
             if isinstance(v, type)
             and issubclass(v, Model)
             and (k in Emitter.__dict__))
 
 def _not_emitting_models():
-    return ((k,v) for (k,v) in globals().iteritems()
+    return ((k,v) for (k,v) in globals().items()
             if isinstance(v, type)
             and issubclass(v, Model)
             and (k not in Emitter.__dict__))
 
 def _composing_models():
-    return ((k,v) for (k,v) in globals().iteritems()
+    return ((k,v) for (k,v) in globals().items()
             if isinstance(v, type)
             and issubclass(v, Composite)
             and (k in Composer.__dict__))
 
 def _not_composing_models():
-    return ((k,v) for (k,v) in globals().iteritems()
+    return ((k,v) for (k,v) in globals().items()
             if isinstance(v, type)
             and issubclass(v, Composite)
             and (k not in Composer.__dict__))
@@ -467,7 +467,8 @@ class Comparable(Expression):
 
 class ExpressionList(Comparable, Containable):
     def __init__(self, exprs): self.exprs = exprs
-    def __nonzero__(self): return bool(self.exprs)
+    def __bool__(self): return bool(self.exprs)
+    __nonzero__ = __bool__
     def __len__(self): return len(self.exprs)
     def __iter__(self): return iter(self.exprs)
     def __getitem__(self, i): return self.exprs[i]
@@ -574,8 +575,8 @@ class YYYY_MM_DD(String):
     def emit(self, emitter):
         date = self._inner(emitter, self.date)
         return emitter.YYYY_MM_DD(
-            self._inner(emitter, date),
-            self._inner(emitter, sep))
+            self._inner(emitter, self.date),
+            self._inner(emitter, self.sep))
 
 class HH_MM_SS(String):
     def __init__(self, date, sep):
@@ -584,15 +585,15 @@ class HH_MM_SS(String):
     def emit(self, emitter):
         date = self._inner(emitter, self.date)
         return emitter.HH_MM_SS(
-            self._inner(emitter, date),
-            self._inner(emitter, sep))
+            self._inner(emitter, self.date),
+            self._inner(emitter, self.sep))
 
 class Generic(Numeric, String, Boolean, DateTime):
     def __add__(self, other):
-        if isinstance(other, basestring): return String.__add__(self, other)
+        if isinstance(other, str): return String.__add__(self, other)
         return Numeric.__add__(self, other)
     def __radd__(self, other):
-        if isinstance(other, basestring): return String.__radd__(self, other)
+        if isinstance(other, str): return String.__radd__(self, other)
         return Numeric.__radd__(self, other)
 
 class Parentheses(Generic):
@@ -770,7 +771,7 @@ class Comparison(Boolean):
         (lambda i: staticmethod(lambda a, b: Comparison(i, a, b)))(i)
         for i in range(6)]
     OP_SQLS = { LT: '<', LE: '<=', EQ: '=', NE: '<>', GE: '>=', GT: '>' }
-    OP_IDS = dict((v,k) for (k,v) in OP_SQLS.iteritems())
+    OP_IDS = dict((v,k) for (k,v) in OP_SQLS.items())
     def __init__(self, op, a, b):
         Boolean.__init__(self)
         self.op = op
@@ -940,7 +941,7 @@ class Table(Composite, Generic, Containable):
     def distinct(self): return Distinct(self)
     def orderby(self, *args): return OrderBy(self, args)
     def inserting(self, *labels, **settings):
-        return Inserting(self, setlist(*labels, **setting))
+        return Inserting(self, setlist(*labels, **settings))
     def updatingall(self, *labels, **settings):
         return UpdatingAll(self, setlist(*labels, **settings))
     def deletingall(self): return DeletingAll(self)

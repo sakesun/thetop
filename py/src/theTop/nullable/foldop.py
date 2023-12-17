@@ -80,7 +80,8 @@ class Fold(object):
         if isnull(self.inner): return hash(None)
         return hash(self.inner)
     def __index__(self): return operator.index(self.inner)
-    def __nonzero__(self): return bool(nullop.accept(self.inner))
+    def __bool__(self): return bool(nullop.accept(self.inner))
+    __nonzero__ = __bool__
     def __coerce__(self, other): return (self, fold(other))
     def And(self, other): return And(self.inner, other)
     def Or(self, other): return Or(self.inner, other)
@@ -121,13 +122,13 @@ class Fold(object):
     def __pos__(self): return pos(self.inner)
     def __add__(self, other):
         other = unfold(other)
-        if isinstance(self.inner, basestring) or unfold_instance(other, basestring):
+        if isinstance(self.inner, str) or unfold_instance(other, str):
             return concat2(self.inner, other)
         else:
             return summarize(self.inner, other)
     def __radd__(self, other):
         other = other
-        if isinstance(self.inner, basestring) or unfold_instance(other, basestring):
+        if isinstance(self.inner, str) or unfold_instance(other, str):
             return concat2(other, self.inner)
         else:
             return summarize(other, self.inner)

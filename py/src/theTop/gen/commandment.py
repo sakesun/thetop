@@ -21,7 +21,7 @@ def validate_boundary(text, start, stop):
             % (start, stop))
 
 def validate_tags(text, tags):
-    for (tag, regions) in tags.iteritems(): validate_regions(text, tag, regions)
+    for (tag, regions) in tags.items(): validate_regions(text, tag, regions)
     validate_crossovering(tags)
 
 def validate_regions(text, tag, regions):
@@ -35,7 +35,7 @@ def validate_regions(text, tag, regions):
                 % (tag, repr(first), repr(text[start:stop])))
 
 def iterate_regions(tags):
-    for (tag, regions) in tags.iteritems():
+    for (tag, regions) in tags.items():
         for (start, stop) in regions:
             yield tag, start, stop
 
@@ -104,7 +104,10 @@ class Commandment(object):
         ntext = self.text
         ntags = deepcopy(self.tags)
         prev_region = None
-        for (nstart, nstop) in sorted(ntags[tag], key=lambda(nstart, nstop): (-nstart, nstop)):
+        def keyfunc(item):
+            (nstart, nstop) = item
+            return (-nstart, nstop)
+        for (nstart, nstop) in sorted(ntags[tag], key=keyfunc):
             if prev_region == (nstart, nstop): continue
             (ntext, ntags) = compute_adjustment(ntext, ntags, nstart, nstop, content)
             prev_region = (nstart, nstop)
@@ -114,11 +117,14 @@ class Commandment(object):
     def __contains__(self, tag): return tag in self.tags
     def __len__(self): return len(self.tags)
     def revise(self, settings):
+        def keyfunc(item):
+            (tag, content, start, stop) = item
+            return (-start, stop)
         adjustments = sorted(
             ((tag, content, start, stop)
              for (tag, content) in settings.items()
              for (start, stop) in self.tags[tag]),
-            key=lambda (tag, content, start, stop): (-start, stop))
+            key=keyfunc)
         unique_adjustments = []
         prev_region = None
         prev_content = None
@@ -135,9 +141,12 @@ class Commandment(object):
         ntext = self.text
         ntags = deepcopy(self.tags)
         done = set()
+        def keyfunc(item):
+            (start, stop) = item
+            return (-start, stop)
         for (tag, content, start, stop) in unique_adjustments:
             if tag in done: continue
-            for (nstart, nstop) in sorted(ntags[tag], key=lambda(start, stop): (-start, stop)):
+            for (nstart, nstop) in sorted(ntags[tag], key=keyfunc):
                 (ntext, ntags) = compute_adjustment(ntext, ntags, nstart, nstop, content)
             done.add(tag)
         validate_tags(ntext, ntags)

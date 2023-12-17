@@ -38,7 +38,7 @@ def sql_string(s): return "'" + s.replace("'", "''") + "'"
 def sql_repr(x):
     if hasattr(x, '__sqlrepr__'): return x.__sqlrepr__()
     if nullop.isnull(x): return 'NULL'
-    if isinstance(x, basestring): return sql_string(x)
+    if isinstance(x, str): return sql_string(x)
     if isinstance(x, decimal.Decimal): return str(x)
     return repr(x)
 
@@ -126,7 +126,7 @@ class ItemDefDecorator(SqlEmitterDecorator):
 class RenameDecorator(SqlEmitterDecorator):
     def __init__(self, decorated, renamings):
         SqlEmitterDecorator.__init__(self, decorated)
-        self.new2old = dict((v, k) for (k, v) in renamings.iteritems())
+        self.new2old = dict((v, k) for (k, v) in renamings.items())
     def Item(self, name):
         n = self.new2old.get(name, name)
         return self.decorated.Item(n)
@@ -271,7 +271,7 @@ class SqlSelect(SqlQuery):
         self.contentemt = ContentEmitterDecorator(self)
         self.currentemt = self.contentemt \
                           if self.hostemt is None else \
-                          HostItemDecorator(self.contentemt, self.hostemt)
+                          SqlCompositeEmitter(self.contentemt, self.hostemt)
         self.aliasings = set()              # set(['label'])
         self.principal_table = None         # 'table'
         self.principal_query = None         # SqlQuery
@@ -288,7 +288,7 @@ class SqlSelect(SqlQuery):
     def guest(self): return SqlSelect(self.rootemt, self, self.currentemt)
     def finalize_guest_principal_qualifier(self, guest):
         self.finalize_principal_qualifier()
-        if rootemt.qualify_whatever: return
+        if self.rootemt.qualify_whatever: return
         if self.dialect.UNIQUE_QUALIFIERS:
             self.rootemt.finalize_principal_qualifier(guest)
         else:
@@ -301,11 +301,11 @@ class SqlSelect(SqlQuery):
                 index = 1
                 while alias in self.qualifiers:
                     index += 1
-                    alias = qualifier + sep + unicode(index)
+                    alias = qualifier + sep + str(index)
                 guest.alias(alias)
                 assert guest.contentemt.qualifier == alias
-            assert composer.contentemt.qualifier not in self.qualifiers
-            self.qualifiers.add(composer.contentemt.qualifier)
+            assert self.contentemt.qualifier not in self.qualifiers
+            self.qualifiers.add(self.contentemt.qualifier)
     def finalize_principal_qualifier(self):
         if self.principal_qualifier_finalized: return
         if self.host is None:
@@ -466,7 +466,7 @@ class SqlSelect(SqlQuery):
         labels = models.renamed_labels(self.get_labels(), renamings)
         self.currentemt = newemt
         self.labels = labels
-        self.aliasings.update(renamings.itervalues())
+        self.aliasings.update(renamings.values())
         return self
     def define(self, deflist):
         newemt = ItemDefDecorator(self.currentemt, dict(deflist))
@@ -553,33 +553,37 @@ class SqlCommand(SqlContent):
 
 class SqlInsert(SqlContent):
     def emit_command(self):
-        sub = w.text('insert', 'into', self.tablename()).scope('(', ')').list(',')
+        # sub = w.text('insert', 'into', self.tablename()).scope('(', ')').list(',')
         # for k in settings.keys(): sub.text(k)
-        sub = w.text('values').scope('(', ')').list(',')
+        # sub = w.text('values').scope('(', ')').list(',')
         # for v in settings.values(): sub.text(totext(v))
+        ...
 
 class SqlUpdate(SqlContent):
     def emit_command(self):
-        w.text('update', self.tablename())
-        sub = w.titled('set').list(',')
-        # for (k,v) in settings.iteritems(): sub.text(k, '=', f(v))
-        if self.wheres:
-            sub = w.titled('where').list('and')
-            #for x in self.wheres: sub.text(f(x))
-            pass
+        # w.text('update', self.tablename())
+        # sub = w.titled('set').list(',')
+        # for (k,v) in settings.items(): sub.text(k, '=', f(v))
+        # if self.wheres:
+        #     sub = w.titled('where').list('and')
+        #     #for x in self.wheres: sub.text(f(x))
+        #     pass
+        ...
 
 class SqlDelete(SqlContent):
     def emit_command(self):
-        w.text('delete', 'from', self.tablename())
-        sub = w.titled('where').list('and')
+        # w.text('delete', 'from', self.tablename())
+        # sub = w.titled('where').list('and')
         # for x in self.wheres: sub.text(f(x))
+        ...
 
 class SqlExtend(SqlContent):
     def emit_command(self):
-        w.text('insert', 'into', self.tablename())
-        sub = w.scope('(', ')').list(',')
+        # w.text('insert', 'into', self.tablename())
+        # sub = w.scope('(', ')').list(',')
         # for x in table..labels: sub.text(x)
         # sub.block().text(subquery(table))
+        ...
 
 class SqlMerge(SqlContent):
     pass
@@ -608,7 +612,7 @@ class SqlEmitter(SqlEmitterBase):
             index = 1
             while alias in self.qualifiers:
                 index += 1
-                alias = qualifier + sep + unicode(index)
+                alias = qualifier + sep + str(index)
             select.alias(alias)
             assert select.contentemt.qualifier == alias
         self.qualifiers.add(select.contentemt.qualifier)
@@ -626,14 +630,14 @@ class SqlEmitter(SqlEmitterBase):
         if hasattr(t, '__sqlrepr__'): return x.__sqlrepr__()
         x = getattr(t, '__name__')
         if x is not None: return x
-        return unicode(t)
+        return str(t)
     def const_repr(self, c):
         if nullop.isnull(c): return self.keyword('null')
         def custom(reprs, v):
             if reprs is None: return None
             r = reprs.get(type(v))
             if r is None: return None
-            return r(value)
+            return r(v)
         x = custom(self.dialect.CONST_REPRS, c)
         if x is not None: return x
         x = custom(CONST_REPRS, c)
@@ -673,7 +677,7 @@ class SqlEmitter(SqlEmitterBase):
         s.header.line(self.keyword('case'))
         for (w, t) in cases:
             s.content.line(self.keyword('when'), ' ', w, ' ', self.keyword('then'), ' ', t)
-        if whenelse is not NotImplemented:
+        if not (whenelse is NotImplemented):
             s.content.line(self.keyword('else'), ' ', whenelse)
         r.line(self.keyword('end'))
         return r
@@ -683,7 +687,7 @@ class SqlEmitter(SqlEmitterBase):
         s.header.line(self.keyword('case'), ' ', switch)
         for (w, t) in cases:
             s.content.line(self.keyword('when'), ' ', w, ' ', self.keyword('then'), ' ', t)
-        if whenelse is not NotImplemented:
+        if not (whenelse is NotImplemented):
             s.content.line(self.keyword('else'), ' ', whenelse)
         r.line(self.keyword('end'))
         return r
@@ -720,7 +724,7 @@ class SqlEmitter(SqlEmitterBase):
         return self.join(' ', [a, self.keyword('not'), self.keyword('in'), S])
     def Like(self, s, pattern, escape):
         items = [s, self.keyword('like'), pattern]
-        if escape and (escape is not NotImplemented):
+        if (escape is not None) and (escape is not NotImplemented):
             items.append(self.keyword('escape'))
             items.append(escape)
         return self.join(' ', items)

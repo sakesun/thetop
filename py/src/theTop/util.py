@@ -41,11 +41,11 @@ class CannotModify(Exception):
 def get_single(values):
     i = iter(values)
     try:
-        result = i.next()
+        result = next(i)
     except StopIteration:
         raise NotFound()
     try:
-        i.next()
+        next(i)
     except StopIteration:
         return result
     raise MoreThanOne()

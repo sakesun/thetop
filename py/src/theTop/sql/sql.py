@@ -2,7 +2,9 @@
 
 from ..util import propattr
 from ..model import models
+from ..gen import structure
 from . import gen
+from . import row
 
 class StoreItem(models.Associate):
     def __init__(self, store, model):
@@ -89,10 +91,10 @@ class DateTime(StoreItem):
 
 class Generic(Numeric, String, Boolean, DateTime):
     def __add__(self, other):
-        if isinstance(other, basestring): return String.__add__(self, other)
+        if isinstance(other, str): return String.__add__(self, other)
         return Numeric.__add__(self, other)
     def __radd__(self, other):
-        if isinstance(other, basestring): return String.__radd__(self, other)
+        if isinstance(other, str): return String.__radd__(self, other)
         return Numeric.__radd__(self, other)
 
 class AllValue(Generic):
@@ -128,8 +130,8 @@ class SqlStoreEmitter(gen.SqlEmitter):
         self.store = store
     def check_store(self, a):
         assert isinstance(a, StoreItem)
-        if store is not self.store:
-            raise Exception('Mismatched store (%s, %s)', repr(store), repr(self.store))
+        if a is not self.store:
+            raise Exception('Mismatched store (%s, %s)', repr(a), repr(self.store))
     def Associate(self, a):
         self.check_store(a)
         return gen.SqlEmitter.Associate(self, a)
@@ -176,7 +178,8 @@ class Table(Generic, Containable):
     def deletingall(self): return DeletingAll(self.model.deletingall())
     def extending(self, extension): return Extending(self.model.extending(extension))
     def merging(self, source, inserting=None): return Merging(self.model.merging(source, inserting))
-    def __nonzero__(self): return self.exists()
+    def __bool__(self): return self.exists()
+    __nonzero__ = __bool__
     def __contains__(self, x): return self.contains(x)()
     def __len__(self): return self.count()
     labels = ()
@@ -189,7 +192,7 @@ class Table(Generic, Containable):
     def deleteall(self): raise NotImplementedError()
     def extend(self, source): raise NotImplementedError()
     def merge(self, source): raise NotImplementedError()
-    row = propattr(lambda self: Row(self))
+    row = propattr(lambda self: row.Row(self))
 
 def valid_labels(self, *labels):
     return labels and all(n in self.labels for n in labels)

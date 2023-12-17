@@ -2,7 +2,7 @@
 
 import decimal
 from .. import nullable
-from ..text import verse
+# from ..text import verse
 from . import common
 from . import expr
 from . import table
@@ -11,8 +11,8 @@ class BaseEvaluator(common.Builder):
     items = None
     params = None
 
-class TableEvaluator(BaseCalculator):
+class TableEvaluator(BaseEvaluator):
     pass
 
-class StoreEvaluator(BaseCalculator):
+class StoreEvaluator(BaseEvaluator):
     pass

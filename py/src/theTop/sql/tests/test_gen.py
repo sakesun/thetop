@@ -39,8 +39,7 @@ class Test_has_many_composites(unittest.TestCase):
 class BaseTestSql(unittest.TestCase):
     def setUp(self): self.emitter = gen.SqlEmitter()
     def sql(self, expr): return self.emitter.emit_model(expr).pretty()
-    def assertSql(self, sql, expr):
-        self.assertEqual(sql, self.sql(expr))
+    def assertSql(self, sql, expr): self.assertEqual(sql, self.sql(expr))
 
 class TestSql(BaseTestSql):
     def testItem(self):

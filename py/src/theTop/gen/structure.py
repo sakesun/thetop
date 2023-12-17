@@ -1,7 +1,7 @@
 #! -*- coding: utf-8 -*-
 
 def punctuation(x):
-    if not isinstance(x, basestring): return None
+    if not isinstance(x, str): return None
     return not any(c.isalnum() for c in x)
 
 class Visitor(object):
@@ -14,7 +14,8 @@ class Visitor(object):
 
 class Structure(object):
     inline = False
-    def __nonzero__(self): raise NotImplementedError()
+    def __bool__(self): raise NotImplementedError()
+    __nonzero__ = __bool__
     def __str__(self): return self.pretty()
     def plain(self):
         v = PlainVisitor()
@@ -39,7 +40,8 @@ tag = Tag
 
 class Roster(Structure):
     def __init__(self): self.subs = []
-    def __nonzero__(self): return bool(self.subs)
+    def __bool__(self): return bool(self.subs)
+    __nonzero__ = __bool__
     def visit(self, visitor): visitor.roster(self)
     def add(self, sub):
         assert isinstance(sub, Structure)
@@ -74,7 +76,8 @@ class Section(Structure):
     def __init__(self):
         self.header = Roster()
         self.content = Roster()
-    def __nonzero__(self): return bool(self.header) or bool(self.content)
+    def __bool__(self): return bool(self.header) or bool(self.content)
+    __nonzero__ = __bool__
     def visit(self, visitor): visitor.section(self)
 
 class List(Roster):
@@ -101,7 +104,8 @@ class Line(Structure):
     def __init__(self, *args):
         self.words = []
         self.word(*args)
-    def __nonzero__(self): return bool(self.words)
+    def __bool__(self): return bool(self.words)
+    __nonzero__ = __bool__
     def visit(self, visitor): visitor.line(self)
     def word(self, *args):
         for x in args:
@@ -164,6 +168,7 @@ class PlainVisitor(CommonVisitor):
         sct.header.visit(self)
         sct.content.visit(self)
     def list(self, lst):
+        if not lst.subs: return
         for x in lst.subs[:-1]:
             self.write(x)
             self.adjwrite = lst.condense
@@ -206,7 +211,7 @@ class PrettyVisitor(CommonVisitor):
         newsealed = len(self.lines) - 2
         if newsealed < 0: return
         acc = 0
-        for i in xrange(self.sealed + 1, newsealed + 1):
+        for i in range(self.sealed + 1, newsealed + 1):
             acc += self.line_len(i) + 1
         self.sealed = newsealed
         self.sealed_len += acc
@@ -249,13 +254,16 @@ class PrettyVisitor(CommonVisitor):
         self.end_structure(state)
     def list(self, lst):
         state = self.begin_structure(lst)
-        for x in lst.subs[:-1]:
-            self.write(x)
-            if not lst.condense: self.write(' ')
-            self.write(lst.sep)
-            self.openline()
-        self.write(lst.subs[-1])
-        self.end_structure(state)
+        try:
+            if not lst.subs: return
+            for x in lst.subs[:-1]:
+                self.write(x)
+                if not lst.condense: self.write(' ')
+                self.write(lst.sep)
+                self.openline()
+            self.write(lst.subs[-1])
+        finally:
+            self.end_structure(state)
     def scope(self, scp):
         state = self.begin_structure(scp)
         self.write(scp.beginning)

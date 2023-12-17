@@ -12,8 +12,8 @@ class TestSlotty(unittest.TestCase):
         s = self.TheSlotty()
         s.value1 = 10
         s.value2 = 20
-        self.assertEquals(s.value1, 10)
-        self.assertEquals(s.value2, 20)
+        self.assertEqual(s.value1, 10)
+        self.assertEqual(s.value2, 20)
         with self.assertRaises(AttributeError): s.value3 = 30
     def test_assert_slotty(self):
         with self.assertRaises(AssertionError): util.assert_slotty(TestSlotty)
@@ -63,12 +63,12 @@ class TestGetSingle(unittest.TestCase):
             util.get_single([])
     def testGetOne(self):
         self.assertEqual(1, util.get_single([1]))
-        self.assertEqual(1, util.get_single(xrange(1, 2)))
+        self.assertEqual(1, util.get_single(range(1, 2)))
     def testGetMany(self):
         with self.assertRaises(util.MoreThanOne):
             util.get_single([1, 2])
         with self.assertRaises(util.MoreThanOne):
-            util.get_single(xrange(10))
+            util.get_single(range(10))
 
 class TestShouldNotReachHere(unittest.TestCase):
     def testShouldNotReachHear(self):
