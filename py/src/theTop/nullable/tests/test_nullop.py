@@ -491,3 +491,17 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(5, r1)
         self.assertEqual(8, r2)
         self.assertEqual(0, r3)
+
+class TestDictWithLimit(unittest.TestCase):
+    def test_dict_with_limit(self):
+        dic = {}
+        limit = 5
+        def assert_joined_keys(s): self.assertEqual(s, ''.join(dic.keys()))
+        nullop._add_to_dict_with_limit(dic, limit, 'q', 0); assert_joined_keys('q')
+        nullop._add_to_dict_with_limit(dic, limit, 'w', 1); assert_joined_keys('qw')
+        nullop._add_to_dict_with_limit(dic, limit, 'e', 2); assert_joined_keys('qwe')
+        nullop._add_to_dict_with_limit(dic, limit, 'r', 3); assert_joined_keys('qwer')
+        nullop._add_to_dict_with_limit(dic, limit, 't', 4); assert_joined_keys('qwert')
+        nullop._add_to_dict_with_limit(dic, limit, 'y', 5); assert_joined_keys('werty')
+        nullop._add_to_dict_with_limit(dic, limit, 'u', 6); assert_joined_keys('ertyu')
+        nullop._add_to_dict_with_limit(dic, limit, 'i', 7); assert_joined_keys('rtyui')

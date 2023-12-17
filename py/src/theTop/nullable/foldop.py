@@ -1,25 +1,28 @@
 #! -*- coding: utf-8 -*-
 
-from __future__ import division
 import operator
 
 from . import nullop
 
 def fold(x):
+    """fold object x"""
     if isinstance(x, Fold): return x
     if isinstance(x, (tuple, list)): return type(x)(fold(i) for i in x)
     return Fold(x)
 
 def unfold(x):
+    """unfold object x"""
     if isinstance(x, Fold): return x.inner
     if isinstance(x, (tuple, list)): return type(x)(unfold(i) for i in x)
     return x
 
 def unfold_instance(x, t):
+    """Check if the may-be-folded object x is instance of t"""
     return isinstance(x, t) \
         or (isinstance(x, Fold) and isinstance(x.inner, t))
 
 def foldfn(f):
+    """for function f return a new function that return folded object"""
     return (lambda *args, **kwargs: fold(f(*args, **kwargs)))
 
 isnull = foldfn(nullop.isnull)
@@ -68,11 +71,13 @@ aggregate_minimums = foldfn(nullop.aggregate_minimums)
 aggregate_maximums = foldfn(nullop.aggregate_maximums)
 aggregate_counts = foldfn(nullop.aggregate_counts)
 
-class Containable(object):
+class Containable:
+    """object that can contain somthing"""
     def contains(self, value): raise NotImplementedError()
     def notcontains(self, value): raise NotImplementedError()
 
-class Fold(object):
+class Fold:
+    """wrapper that make a value support null-aware operations"""
     __slots__ = 'inner'
     def __init__(self, inner): self.inner = unfold(inner)
     def __repr__(self): return 'Fold(%s)' % repr(self.inner)
