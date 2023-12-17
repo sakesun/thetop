@@ -3,7 +3,6 @@
 from functools import reduce
 import re
 import operator
-import string
 
 def _is_None(x): return x is None
 def _custom_isnull(x): return hasattr(x, '__isnull__') and x.__isnull__
