@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export THETOP_BIN="`cd \`dirname $0\`; pwd`"
+. "$THETOP_BIN/theTop-setenv"
+
+for f in `find "$THETOP_HOME/src/python"|grep '.*\.pyc$'`; do
+  rm -v "$f";
+done

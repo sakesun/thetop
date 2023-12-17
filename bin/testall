@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export THETOP_BIN="`cd \`dirname $0\`; pwd`"
+source "$THETOP_BIN/theTop-setenv"
+
+python -m unittest discover -v -s $THETOP_HOME/src/python
