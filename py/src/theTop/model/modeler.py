@@ -59,4 +59,10 @@ class DynamicOperations(object):
 class OperationModeler(BooleanOperations, StaticOperations, PortableOperations, DynamicOperations):
     __call__ = StaticOperations.paren
 
-the, T, op = ItemModeler(), TableModeler(), OperationModeler()
+class UniversalModeler(object):
+    ...
+
+class ContextModeler(object):
+    ...
+
+being, at, the, T, op = UniversalModeler, ContextModeler, ItemModeler(), TableModeler(), OperationModeler()
