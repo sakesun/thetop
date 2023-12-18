@@ -42,21 +42,6 @@ class TestLocalFileName(unittest.TestCase):
         self.assertTrue(f.endswith('FileName.txt'))
         self.assertIn(os.path.join('theTop', 'tests'), f)
 
-class TestPropAttr(unittest.TestCase):
-    class TheObject(object):
-        mark = None
-        @util.propattr
-        def TheMark(self): return self.mark
-    def testPropAttr(self):
-        o = TestPropAttr.TheObject()
-        self.assertIsNone(o.mark)
-        o.mark = 10
-        self.assertEqual(10, o.mark)
-        self.assertEqual(10, o.TheMark)
-        o.mark = 20
-        self.assertEqual(20, o.mark)
-        self.assertEqual(10, o.TheMark)
-
 class TestGetSingle(unittest.TestCase):
     def testGetEmpty(self):
         with self.assertRaises(util.NotFound):

@@ -14,14 +14,6 @@ def local_filename(name, ref=None):
     (p,f) = os.path.split(mod.__file__)
     return os.path.join(p, name)
 
-class propattr(object):
-    def __init__(self, func): self.func = func
-    def __get__(self, instance, owner):
-        if instance is None: return self
-        v = self.func(instance)
-        instance.__dict__[self.func.__name__] = v
-        return v
-
 class NotFound(LookupError):
     '''An exception to be raised when expected lookup item is not found'''
     pass

@@ -1,12 +1,12 @@
 #! -*- coding: utf-8 -*-
 
 import decimal
+from functools import cached_property
 from .. import util
 from ..nullable import nullop
 from ..model import models
 from ..gen import structure, commandment
 
-propattr = util.propattr
 CONST_REPRS = {}
 TYPE_REPRS = {}
 
@@ -76,7 +76,7 @@ class SqlEmitterBase(models.Emitter):
     def QualifiedItem(self, qualifier, name): raise NotImplementedError()
 
 class SqlEmitterDecorator(SqlEmitterBase, models.EmitterDecorator):
-    dialect = propattr(lambda self: self.decorated.dialect)
+    dialect = cached_property(lambda self: self.decorated.dialect)
     def __init__(self, decorated):
         assert isinstance(decorated, SqlEmitterBase)
         self.decorated = decorated
@@ -530,16 +530,16 @@ class SqlJoin(SqlContent):
         return ln
 
 class SqlInnerJoin(SqlJoin):
-    JOIN_CLAUSE_PREFIX = propattr(lambda self: self.rootemt.keyword('join'))
+    JOIN_CLAUSE_PREFIX = cached_property(lambda self: self.rootemt.keyword('join'))
 
 class SqlOuterJoin(SqlJoin):
-    JOIN_CLAUSE_PREFIX = propattr(lambda self: (
+    JOIN_CLAUSE_PREFIX = cached_property(lambda self: (
         self.rootemt.keyword('left') + ' ' +
         self.rootemt.keyword('outer') + ' ' +
         self.rootemt.keyword('join')))
 
 class SqlCrossJoin(SqlJoin):
-    JOIN_CLAUSE_PREFIX = propattr(lambda self: (
+    JOIN_CLAUSE_PREFIX = cached_property(lambda self: (
         self.rootemt.keyword('cross') + ' ' +
         self.rootemt.keyword('join')))
     def emit_join_predicate(self):

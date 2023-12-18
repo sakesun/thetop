@@ -1,4 +1,4 @@
-from ..util import propattr
+from functools import cached_property
 from ..nullable import nullop
 
 ##########
@@ -446,7 +446,7 @@ class Boolean(Expression):
         if isinstance(other, Or): return other._ror_(self)
         return self._or_(other)
     def _or_(self, other): return Or([self, other])
-    not_ = propattr(lambda self: Not(self))
+    not_ = cached_property(lambda self: Not(self))
 
 class Comparable(Expression):
     def __lt__(self, other): return Comparison.lt(self, make(other))
@@ -462,8 +462,8 @@ class Comparable(Expression):
             Comparison.lt(self, make(afterlast))])
     def in_(self, S): return make(S)._contains(self)
     def not_in_(self, S): return make(S)._not_contains(self)
-    is_null = propattr(lambda self: IsNull(self))
-    is_not_null = propattr(lambda self: NotNull(self))
+    is_null = cached_property(lambda self: IsNull(self))
+    is_not_null = cached_property(lambda self: NotNull(self))
 
 class ExpressionList(Comparable, Containable):
     def __init__(self, exprs): self.exprs = exprs
@@ -538,13 +538,13 @@ class DateTimePart(Numeric):
 class DateTime(Comparable):
     def date(self): return self.daystart
     # part
-    year = propattr(DateTimePart.yearof)
-    month = propattr(DateTimePart.monthof)
-    day = propattr(DateTimePart.dayof)
-    hour = propattr(DateTimePart.hourof)
-    minute = propattr(DateTimePart.minuteof)
-    second = propattr(DateTimePart.secondof)
-    microsecond = propattr(DateTimePart.microsecondof)
+    year = cached_property(DateTimePart.yearof)
+    month = cached_property(DateTimePart.monthof)
+    day = cached_property(DateTimePart.dayof)
+    hour = cached_property(DateTimePart.hourof)
+    minute = cached_property(DateTimePart.minuteof)
+    second = cached_property(DateTimePart.secondof)
+    microsecond = cached_property(DateTimePart.microsecondof)
     # start
     def yearstart(self): return PeriodStart(self, DateTimePart.YEAR, 0)
     def monthstart(self): return PeriodStart(self, DateTimePart.MONTH, 0)
@@ -912,11 +912,11 @@ class Count(Composite, Numeric):
 
 class Table(Composite, Generic, Containable):
     origin = None
-    all = propattr(AllValue)
-    any = propattr(AnyValue)
-    exists = propattr(Existence)
-    not_exists = propattr(lambda self: self.exists.not_)
-    count = propattr(Count)
+    all = cached_property(AllValue)
+    any = cached_property(AnyValue)
+    exists = cached_property(Existence)
+    not_exists = cached_property(lambda self: self.exists.not_)
+    count = cached_property(Count)
     def qualify(self): return Qualify(self)
     def alias(self, alias): return Alias(self, alias)
     def nest(self, alias=None): return Nest(self, alias)
@@ -952,7 +952,7 @@ class Origin(Table):
     origin = property(lambda self: self)
 
 class Derivative(Table):
-    origin = propattr(lambda self: self.parent.origin)
+    origin = cached_property(lambda self: self.parent.origin)
     def __init__(self, parent): self.parent = parent
 
 class Distinct(Derivative):
@@ -1037,7 +1037,7 @@ class Rename(Arrange):
 
 class Define(Arrange):
     deflist = None  # [('name', expr)]
-    defdict = propattr(lambda self: dict(self.deflist))
+    defdict = cached_property(lambda self: dict(self.deflist))
     def __init__(self, parent, deflist):
         Arrange.__init__(self, parent)
         self.deflist = deflist
@@ -1047,7 +1047,7 @@ class Define(Arrange):
 
 class Redefine(Arrange):
     deflist = None  # [('name', expr)]
-    defdict = propattr(lambda self: dict(self.deflist))
+    defdict = cached_property(lambda self: dict(self.deflist))
     def __init__(self, parent, deflist):
         Arrange.__init__(self, parent)
         self.deflist = deflist
@@ -1122,7 +1122,7 @@ class Manipulation(Composite):
 
 class Inserting(Manipulation):
     setlist = None  # [('name', expr)]
-    setdict = propattr(lambda self: dict(self.setlist))
+    setdict = cached_property(lambda self: dict(self.setlist))
     def __init__(self, table, setlist):
         Manipulation.__init__(self, table)
         self.setlist = setlist
@@ -1132,7 +1132,7 @@ class Inserting(Manipulation):
 
 class UpdatingAll(Manipulation):
     setlist = None  # [('name', expr)]
-    setdict = propattr(lambda self: dict(self.setlist))
+    setdict = cached_property(lambda self: dict(self.setlist))
     def __init__(self, table, setlist):
         Manipulation.__init__(self, table)
         self.setlist = setlist

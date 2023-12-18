@@ -1,6 +1,6 @@
 #! -*- coding: utf-8 -*-
 
-from ..util import propattr
+from functools import cached_property
 from ..model import models
 from ..gen import structure
 from . import gen
@@ -18,7 +18,7 @@ class Containable(StoreItem):
 class Boolean(StoreItem):
     def and_(self, other): return Boolean(self.store, self.model.and_(other))
     def or_(self, other): return Boolean(self.store, self.model.or_(other))
-    not_ = propattr(lambda self: Boolean(self.store, self.model.not_))
+    not_ = cached_property(lambda self: Boolean(self.store, self.model.not_))
 
 class Comparable(StoreItem):
     def __lt__(self, other): return Boolean(self.store, self.model.__lt__(other))
@@ -31,8 +31,8 @@ class Comparable(StoreItem):
     def in_range(self, first, afterlast): return Boolean(self.store, self.model.inrange(first, afterlast))
     def in_(self, S): return Boolean(self.store, self.model.in_(S))
     def not_in_(self, S): return Boolean(self.store, self.model.not_in_(S))
-    is_null = propattr(lambda self: Boolean(self.store, self.model.is_null))
-    is_not_null = propattr(lambda self: Boolean(self.store, self.model.is_not_null))
+    is_null = cached_property(lambda self: Boolean(self.store, self.model.is_null))
+    is_not_null = cached_property(lambda self: Boolean(self.store, self.model.is_not_null))
 
 class Numeric(StoreItem):
     def __neg__(self): return Numeric(self.store, self.model.__neg__())
@@ -71,13 +71,13 @@ class String(StoreItem):
 class DateTime(StoreItem):
     def date(self): return DateTime(self.store, self.model.date())
     # part
-    year = propattr(lambda self: Numeric(self.store, self.model.year))
-    month = propattr(lambda self: Numeric(self.store, self.model.month))
-    day = propattr(lambda self: Numeric(self.store, self.model.day))
-    hour = propattr(lambda self: Numeric(self.store, self.model.hour))
-    minute = propattr(lambda self: Numeric(self.store, self.model.minute))
-    second = propattr(lambda self: Numeric(self.store, self.model.second))
-    microsecond = propattr(lambda self: Numeric(self.store, self.model.microsecond))
+    year = cached_property(lambda self: Numeric(self.store, self.model.year))
+    month = cached_property(lambda self: Numeric(self.store, self.model.month))
+    day = cached_property(lambda self: Numeric(self.store, self.model.day))
+    hour = cached_property(lambda self: Numeric(self.store, self.model.hour))
+    minute = cached_property(lambda self: Numeric(self.store, self.model.minute))
+    second = cached_property(lambda self: Numeric(self.store, self.model.second))
+    microsecond = cached_property(lambda self: Numeric(self.store, self.model.microsecond))
     # start
     def yearstart(self): return DateTime(self.store, self.model.yearstart())
     def monthstart(self): return DateTime(self.store, self.model.monthstart())
@@ -141,7 +141,7 @@ class Table(Generic, Containable):
         # check store ?
         return self.model.emit(emitter)
     def _new(self, model): return Table(self.store, model)
-    emitter = propattr(lambda self: SqlStoreEmitter(self.store))
+    emitter = cached_property(lambda self: SqlStoreEmitter(self.store))
     def gen_select(self):
         s = self.model.emit(self.emitter)
         p = structure.PrettyVisitor(self.dialect.TAB)
@@ -149,11 +149,11 @@ class Table(Generic, Containable):
         return (p.pretty(), p.tags)
     def gen_insert(self):
         pass
-    all = propattr(AllValue)
-    any = propattr(AnyValue)
-    exists = propattr(Existence)
-    not_exists = propattr(lambda self: self.exists.not_)
-    count = propattr(Count)
+    all = cached_property(AllValue)
+    any = cached_property(AnyValue)
+    exists = cached_property(Existence)
+    not_exists = cached_property(lambda self: self.exists.not_)
+    count = cached_property(Count)
     def qualify(self): return self._new(self.model.qualify())
     def alias(self, alias): return self._new(self.model.alias(alias))
     def nest(self, alias): return self._new(self.model.nest(alias))
@@ -192,7 +192,7 @@ class Table(Generic, Containable):
     def deleteall(self): raise NotImplementedError()
     def extend(self, source): raise NotImplementedError()
     def merge(self, source): raise NotImplementedError()
-    row = propattr(lambda self: row.Row(self))
+    row = cached_property(lambda self: row.Row(self))
 
 def valid_labels(self, *labels):
     return labels and all(n in self.labels for n in labels)
