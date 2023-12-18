@@ -87,7 +87,7 @@ def deflist(*args, **kwargs):
         return r
     else:
         assert kwargs
-        return [(k, make(kwargs[k])) for k in sorted(kwargs.keys())]
+        return [(k, make(kwargs[k])) for k in kwargs.keys()]
 
 def altogether(*predicates):
     if not predicates: return TRUE

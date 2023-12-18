@@ -9,16 +9,15 @@ class Test_defined_labels(unittest.TestCase):
         labels = models.defined_labels(
             ('A', 'B', 'C'),
             models.deflist(Z=7, B=6, X=5))
-        self.assertEqual(labels, ('A', 'B', 'C', 'X', 'Z'))
+        self.assertEqual(labels, ('A', 'B', 'C', 'Z', 'X'))
 
 class Test_renamed_labels(unittest.TestCase):
     def test_regular(self):
         dic = dict(A='AA', C='CC')
+        saved = dic.copy()
         labels = models.renamed_labels(('A', 'B', 'C'), dic)
         self.assertEqual(labels, ('AA', 'B', 'CC'))
-        assert(2, len(dic))
-        assert('AA', dic['A'])
-        assert('CC', dic['C'])
+        self.assertEqual(saved, dic)
     def test_duplicated(self):
         with self.assertRaises(KeyError):
             models.renamed_labels(('A', 'B', 'C'), dict(A='X', C='X'))
@@ -41,7 +40,7 @@ class Test_deflist(unittest.TestCase):
     def test_deflist_dict(self):
         d = models.deflist(B=20, A=10, C=30)
         self.assertEqual(
-            [('A', 10), ('B', 20), ('C', 30)],
+            [('B', 20), ('A', 10), ('C', 30)],
             [(k, v.constant) for (k,v) in d])
 
 class Test_setlist(unittest.TestCase):
